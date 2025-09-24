@@ -1,0 +1,35 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                  String      @id @default(uuid())
+  username            String
+  tasks               Task[]
+  generatedMergeCodes MergeCode[] @relation("GeneratedBy")
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  description String
+  isDone      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+}
+
+model MergeCode {
+  id                String    @id @default(uuid())
+  code              String    @unique
+  generatedBy       User      @relation("GeneratedBy", fields: [generatedByUserId], references: [id])
+  generatedByUserId String
+  createdAt         DateTime  @default(now())
+  expiresAt         DateTime
+  used              Boolean   @default(false)
+  usedAt            DateTime?
+}

@@ -1,0 +1,117 @@
+app accountMergingWasp {
+  wasp: {
+    version: "^0.18.0"
+  },
+  title: "account-merging-wasp",
+  head: [
+    "<link rel='icon' href='/favicon.ico' />",
+  ],
+  auth: {
+    userEntity: User,
+    methods: {
+      google: {
+        userSignupFields: import { googleUserSignupFields } from "@src/auth/google/userSignupFields",
+        configFn: import { getConfig } from "@src/auth/google/config"
+      },
+      email: {
+        fromField: {
+          name: "Basic App",
+          email: "hello@example.com"
+        },
+        userSignupFields: import { userSignupFields } from "@src/auth/email/userSignupFields",
+        emailVerification: {
+          clientRoute: EmailVerificationRoute,
+        },
+        passwordReset: {
+          clientRoute: PasswordResetRoute,
+        }
+      },
+    },
+    onAuthSucceededRedirectTo: "/",
+    onAuthFailedRedirectTo: "/login",
+  },
+  emailSender: {
+    provider: Dummy,
+  },
+  client: {
+    rootComponent: import { App } from "@src/App.tsx",
+  }
+}
+
+// #region Auth
+route LoginRoute { path: "/login", to: LoginPage }
+page LoginPage {
+  component: import { LoginPage } from "@src/auth/email/LoginPage.tsx"
+}
+
+route SignupRoute { path: "/signup", to: SignupPage }
+page SignupPage {
+  component: import { SignupPage } from "@src/auth/email/SignupPage.tsx"
+}
+
+route RequestPasswordResetRoute { path: "/request-password-reset", to: RequestPasswordResetPage }
+page RequestPasswordResetPage {
+  component: import { RequestPasswordResetPage } from "@src/auth/email/RequestPasswordResetPage.tsx",
+}
+
+route PasswordResetRoute { path: "/password-reset", to: PasswordResetPage }
+page PasswordResetPage {
+  component: import { PasswordResetPage } from "@src/auth/email/PasswordResetPage.tsx",
+}
+
+route EmailVerificationRoute { path: "/email-verification", to: EmailVerificationPage }
+page EmailVerificationPage {
+  component: import { EmailVerificationPage } from "@src/auth/email/EmailVerificationPage.tsx",
+}
+// #endregion Auth
+
+// #region Tasks
+route TasksRoute { path: "/", to: TasksPage }
+page TasksPage {
+  authRequired: true,
+  component: import { TasksPage } from "@src/tasks/TasksPage.tsx"
+}
+
+query getTasks {
+  fn: import { getTasks } from "@src/tasks/queries",
+  entities: [Task]
+}
+
+action createTask {
+  fn: import { createTask } from "@src/tasks/actions",
+  entities: [Task]
+}
+
+action updateTaskStatus {
+  fn: import { updateTaskStatus } from "@src/tasks/actions",
+  entities: [Task]
+}
+
+action deleteCompletedTasks {
+  fn: import { deleteCompletedTasks } from "@src/tasks/actions",
+  entities: [Task],
+}
+// #endregion Tasks
+
+// #region Account Merging
+route AccountMergeRoute { path: "/account-merge", to: AccountMergePage }
+page AccountMergePage {
+  authRequired: true,
+  component: import { AccountMergePage } from "@src/merge/AccountMergePage.tsx"
+}
+
+action generateMergeCode {
+  fn: import { generateMergeCode } from "@src/merge/actions",
+  entities: [MergeCode]
+}
+
+action validateMergeCode {
+  fn: import { validateMergeCode } from "@src/merge/actions",
+  entities: [MergeCode]
+}
+
+action mergeAccounts {
+  fn: import { mergeAccounts } from "@src/merge/actions",
+  entities: [MergeCode, User, Task]
+}
+// #endregion Account Merging
